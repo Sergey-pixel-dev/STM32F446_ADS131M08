@@ -107,6 +107,7 @@ static void cmd_set_samplerate(uint8_t idx) {
     return;
   }
   g_adc.clock_reg |= g_osr_array[idx];
+
   ADS131M08_WriteReg(&g_adc, ADS131M08_REG_CLOCK, g_adc.clock_reg);
   send_response_empty();
 }

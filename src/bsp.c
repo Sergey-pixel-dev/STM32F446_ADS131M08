@@ -162,13 +162,13 @@ void tim2_init(void) {
 
   TIM2->CR1 = 0;
   TIM2->PSC = 0;
-  TIM2->ARR = 40; // 2.048 Мгц будет
+  TIM2->ARR = 43; // +-2.048 Мгц будет
   TIM2->EGR = TIM_EGR_UG;
 
   TIM2->CCMR1 &= ~(TIM_CCMR1_OC1M | TIM_CCMR1_CC1S);
   TIM2->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
   TIM2->CCMR1 |= TIM_CCMR1_OC1PE;
-  TIM2->CCR1 = 20;
+  TIM2->CCR1 = 21;
   TIM2->CCER |= TIM_CCER_CC1E;
 
   TIM2->CR1 = TIM_CR1_CEN;
@@ -193,14 +193,14 @@ void uart5_dma_init(void) {
   GPIOD->MODER = (GPIOD->MODER & ~(3UL << 4)) | (2UL << 4);
   GPIOD->AFR[0] = (GPIOD->AFR[0] & ~(0xFUL << 8)) | (8UL << 8);
 
-  /* UART5: ~2 Mbaud (45 MHz APB1 / 21 = 2.143 MHz), 8N1, IDLEIE, TX+RX DMA */
+  /* UART5: ~2 Mbaud, 8N1, IDLEIE, TX+RX DMA */
   UART5->CR1 = 0;
-  UART5->CR2 = 0;
+  UART5->CR2 = 0x16;
   UART5->CR3 = USART_CR3_DMAT | USART_CR3_DMAR;
-  UART5->BRR = 21;
+  UART5->BRR = 0x31;
   UART5->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE | USART_CR1_UE;
 
-  /* DMA1 Stream0 Ch4 = UART5_RX: periph -> mem, circular, byte, MINC */
+  /* DMA1 Stream0 Ch4 = UART5_RX: periph -> mem, normal, byte, MINC */
   DMA1_Stream0->CR = 0;
   while (DMA1_Stream0->CR & DMA_SxCR_EN)
     ;
@@ -210,8 +210,7 @@ void uart5_dma_init(void) {
   DMA1_Stream0->M0AR = (uint32_t)rx_dma_buf;
   DMA1_Stream0->NDTR = RX_DMA_BUF_SIZE;
   DMA1_Stream0->FCR = 0;
-  DMA1_Stream0->CR =
-      (4UL << DMA_SxCR_CHSEL_Pos) | DMA_SxCR_MINC | DMA_SxCR_CIRC;
+  DMA1_Stream0->CR = (4UL << DMA_SxCR_CHSEL_Pos) | DMA_SxCR_MINC;
   DMA1_Stream0->CR |= DMA_SxCR_EN;
 
   /* DMA1 Stream7 Ch4 = UART5_TX: mem -> periph, byte, MINC, TCIE */

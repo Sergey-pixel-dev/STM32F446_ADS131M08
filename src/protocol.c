@@ -103,8 +103,8 @@ static void tx_dma_send(void) {
   tx_busy = 1U;
   DMA1_Stream7->CR |= DMA_SxCR_EN;
 
-  /*  while (tx_busy)
-     ; */
+  while (tx_busy)
+    ;
   tx_stage_len = 0U;
 }
 
@@ -378,6 +378,8 @@ void protocol_on_idle(void) {
     }
   }
 
+  DMA1->LIFCR = DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 |
+                DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0;
   DMA1_Stream0->NDTR = RX_DMA_BUF_SIZE;
   DMA1_Stream0->CR |= DMA_SxCR_EN;
 }

@@ -88,12 +88,32 @@ void DMA1_Stream7_IRQHandler(void) {
 }
 
 /**
- * @brief  DMA1 Stream0 interrupt — RX error stub.
+ * @brief  DMA1 Stream0 interrupt — RX transfer complete / error.
+ *        In normal mode: if the buffer fills before IDLE fires,
+ *        restart DMA so reception continues.
  */
 void DMA1_Stream0_IRQHandler(void) {
-    /* Not used for circular RX — UART IDLE handles the packet boundary.
-       Keep this stub in case DMA error flags need clearing. */
-    if (DMA1->LISR & DMA_LISR_TEIF0) {
+    uint32_t flags = DMA1->LISR;
+
+    if (flags & DMA_LISR_TCIF0) {
+        DMA1->LIFCR = DMA_LIFCR_CTCIF0;
+    }
+    if (flags & DMA_LISR_TEIF0) {
         DMA1->LIFCR = DMA_LIFCR_CTEIF0;
+    }
+    if (flags & DMA_LISR_DMEIF0) {
+        DMA1->LIFCR = DMA_LIFCR_CDMEIF0;
+    }
+    if (flags & DMA_LISR_FEIF0) {
+        DMA1->LIFCR = DMA_LIFCR_CFEIF0;
+    }
+
+    /* Restart DMA in case it stopped (TC, TE, or DME) */
+    if (flags & (DMA_LISR_TCIF0 | DMA_LISR_TEIF0 | DMA_LISR_DMEIF0)) {
+        DMA1_Stream0->CR &= ~DMA_SxCR_EN;
+        while (DMA1_Stream0->CR & DMA_SxCR_EN)
+            ;
+        DMA1_Stream0->NDTR = RX_DMA_BUF_SIZE;
+        DMA1_Stream0->CR |= DMA_SxCR_EN;
     }
 }
