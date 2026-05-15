@@ -1,0 +1,12 @@
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+.claude
+.vscode
+.settings
+build
+*.pdf
+Documents
